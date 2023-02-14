@@ -1,0 +1,101 @@
+https://github.com/ayuki-joto/kic-kadai-app-e
+↑からファイルをダウンロード
+
+解凍してvscodeで開く
+
+routes/web.php
+一番最後に追加
+
+Route::get('/search', [HomeController::class,'search'])->name('search');
+
+
+
+resources/views/search.blade.php
+新しくファイルを作成してコピペ
+
+@extends('layouts.app')
+@section('content')
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">{{ __('Dashboard') }}</div>
+<p>こんにちは</p>
+@foreach($coments AS $coment)
+    <p> {{ $coment['name']}}
+        {{ $coment['text'] }}
+        <img src="{{asset('storage/' . $coment['img_path'])}}">
+        <hr>
+    </p>
+@endforeach
+@endsection
+
+
+
+resources/views/home.blade.php
+"すべての投稿を確認"の上にコピペ
+
+                <div>
+                    <form action="/search" method="GET">
+                        タグで投稿を検索
+                        <input type="text" name="keyword">
+                        <input type="submit" value="検索">
+                    </form>
+                </div>
+
+
+
+resources/views/create.blade.php
+"保存"ボタンのひとつ上の行にコピペ
+<p>タグ:複数の場合は「、」で区切ってください<input name="tag"></p>
+
+
+database/migrations/2023_02_13_182809_create_posts_table.php
+"php artisan make:migration create_posts_table --table=posts"でファイル作成
+下記コピペ
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::table('posts', function (Blueprint $table) {
+            $table->string('tag');
+        });
+    }
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::table('posts', function (Blueprint $table) {
+            //
+        });
+    }
+};
+
+
+
+app/Http/Controllers/HomeController.php
+一番下に挿入
+    public function search(Request $request)
+    {
+        $keyword = $request->keyword;
+        $query = Posts::query();
+        $query->where("tag", "LIKE", '%'.$keyword.'%');  
+        $coments = $query->get();
+        return view('search',compact('coments'));
+    }
+
